@@ -8,20 +8,21 @@ require_once '../config/database.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-switch($method) {
+switch ($method) {
     case 'GET':
         getMenuItems();
         break;
-        case 'POST':
-            addMenuItem();
-            break;
+    case 'POST':
+        addMenuItem();
+        break;
     default:
         http_response_code(405);
         echo json_encode(['error' => 'Method not allowed']);
         break;
 }
 
-function getMenuItems() {
+function getMenuItems()
+{
     global $pdo;
 
     try {
@@ -58,7 +59,6 @@ function getMenuItems() {
             'categories' => $categories,
             'items' => $items
         ]);
-
     } catch (PDOException $e) {
         http_response_code(500);
         echo json_encode([
@@ -69,12 +69,11 @@ function getMenuItems() {
 }
 
 
-function addMenuItem() {
+function addMenuItem()
+{
     global $pdo;
 
-    $data = json_decode(file_get_contents("php://input"), true);
-
-    if (empty($data['name']) || empty($data['price'])) {
+    if (empty($_POST['name']) || empty($_POST['price'])) {
         http_response_code(400);
         echo json_encode([
             'success' => false,
@@ -83,27 +82,43 @@ function addMenuItem() {
         return;
     }
 
+    // ===== UPLOAD FOTO =====
+    $photoName = null;
+
+    if (!empty($_FILES['photo']['name'])) {
+        $uploadDir = '../public/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $ext = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
+        $photoName = uniqid('menu_') . '.' . $ext;
+        $uploadPath = $uploadDir . $photoName;
+
+        move_uploaded_file($_FILES['photo']['tmp_name'], $uploadPath);
+    }
+
     try {
         $stmt = $pdo->prepare("
             INSERT INTO menu_items
-            (category_id, name, description, price, is_available, preparation_time)
-            VALUES (:category_id, :name, :description, :price, :is_available, :preparation_time)
+            (category_id, name, description, image_url, price, is_available, preparation_time)
+            VALUES (:category_id, :name, :description, :photo, :price, :is_available, :preparation_time)
         ");
 
         $stmt->execute([
-            ':category_id' => $data['category_id'],
-            ':name' => $data['name'],
-            ':description' => $data['description'],
-            ':price' => $data['price'],
-            ':is_available' => $data['is_available'] ?? 1,
-            ':preparation_time' => $data['preparation_time'] ?? 10
+            ':category_id' => $_POST['category_id'] ?? null,
+            ':name' => $_POST['name'],
+            ':description' => $_POST['description'] ?? null,
+            ':photo' => $photoName,
+            ':price' => $_POST['price'],
+            ':is_available' => $_POST['is_available'] ?? 1,
+            ':preparation_time' => $_POST['preparation_time'] ?? 10
         ]);
 
         echo json_encode([
             'success' => true,
             'message' => 'Menu berhasil ditambahkan'
         ]);
-
     } catch (PDOException $e) {
         http_response_code(500);
         echo json_encode([
@@ -111,6 +126,4 @@ function addMenuItem() {
             'error' => $e->getMessage()
         ]);
     }
-    
 }
-?>

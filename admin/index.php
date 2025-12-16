@@ -7,7 +7,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
     if (isset($_POST['login'])) {
         $username = $_POST['username'] ?? '';
         $password = $_POST['password'] ?? '';
-        
+
         // Simple hardcoded admin credentials (use database in production)
         if ($username === 'admin' && $password === 'admin123') {
             $_SESSION['admin_logged_in'] = true;
@@ -17,7 +17,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
             $error = 'Username atau password salah';
         }
     }
-    
+
     // Show login form
     include 'login.php';
     exit;
@@ -25,6 +25,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,11 +38,13 @@ if (!isset($_SESSION['admin_logged_in'])) {
             padding: 1rem 0;
             margin-bottom: 2rem;
         }
+
         .admin-nav {
             display: flex;
             gap: 2rem;
             margin-bottom: 2rem;
         }
+
         .admin-nav button {
             padding: 0.75rem 1.5rem;
             border: 2px solid var(--primary-color);
@@ -51,87 +54,105 @@ if (!isset($_SESSION['admin_logged_in'])) {
             cursor: pointer;
             transition: all 0.3s ease;
         }
+
         .admin-nav button.active,
         .admin-nav button:hover {
             background: var(--primary-color);
             color: var(--white);
         }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
+
         .stat-card {
             background: var(--white);
             padding: 1.5rem;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
+
         .stat-number {
             font-size: 2rem;
             font-weight: bold;
             color: var(--primary-color);
         }
+
         .data-table {
             background: var(--white);
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
+
         .data-table table {
             width: 100%;
             border-collapse: collapse;
         }
+
         .data-table th,
         .data-table td {
             padding: 1rem;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
         }
+
         .data-table th {
             background: var(--light-gray);
             font-weight: bold;
         }
+
         .status-badge {
             padding: 0.25rem 0.75rem;
             border-radius: 15px;
             font-size: 0.8rem;
             font-weight: bold;
         }
+
         .status-pending {
             background: #fff3cd;
             color: #856404;
         }
+
         .status-confirmed {
             background: #d4edda;
             color: #155724;
         }
+
         .status-completed {
             background: #d1ecf1;
             color: #0c5460;
         }
+
         .status-cancelled {
             background: #f8d7da;
             color: #721c24;
         }
+
         .action-buttons {
             display: flex;
             gap: 0.5rem;
         }
+
         .btn-sm {
             padding: 0.25rem 0.75rem;
             font-size: 0.8rem;
         }
+
         .section {
             display: none;
         }
+
         .section.active {
             display: block;
         }
     </style>
 </head>
+
 <body>
     <header class="admin-header">
         <div class="container">
@@ -139,7 +160,8 @@ if (!isset($_SESSION['admin_logged_in'])) {
                 <h1>Admin Panel - Blue Space Coffee</h1>
                 <div>
                     <span>Selamat datang, Admin</span>
-                    <a href="logout.php" class="btn btn-outline" style="margin-left: 1rem; color: var(--white); border-color: var(--white);">Logout</a>
+                    <a href="logout.php" class="btn btn-outline"
+                        style="margin-left: 1rem; color: var(--white); border-color: var(--white);">Logout</a>
                 </div>
             </div>
         </div>
@@ -161,7 +183,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
             <div class="stats-grid" id="statsGrid">
                 <!-- Stats will be loaded here -->
             </div>
-            
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                 <div class="data-table">
                     <h3 style="padding: 1rem;">Pesanan Terbaru</h3>
@@ -169,7 +191,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
                         <!-- Recent orders will be loaded here -->
                     </div>
                 </div>
-                
+
                 <div class="data-table">
                     <h3 style="padding: 1rem;">Reservasi Hari Ini</h3>
                     <div id="todayReservations">
@@ -196,7 +218,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
                     <button class="btn btn-primary" onclick="loadOrders()">Refresh</button>
                 </div>
             </div>
-            
+
             <div class="data-table">
                 <table>
                     <thead>
@@ -222,11 +244,12 @@ if (!isset($_SESSION['admin_logged_in'])) {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <h2>Manajemen Reservasi</h2>
                 <div>
-                    <input type="date" id="reservationDateFilter" class="form-control" style="display: inline-block; width: auto;">
+                    <input type="date" id="reservationDateFilter" class="form-control"
+                        style="display: inline-block; width: auto;">
                     <button class="btn btn-primary" onclick="loadReservations()">Refresh</button>
                 </div>
             </div>
-            
+
             <div class="data-table">
                 <table>
                     <thead>
@@ -254,7 +277,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
                 <h2>Manajemen Menu</h2>
                 <button class="btn btn-primary" onclick="showAddMenuForm()">Tambah Item</button>
             </div>
-            
+
             <div class="data-table">
                 <table>
                     <thead>
@@ -277,7 +300,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
         <!-- Analytics Section -->
         <section id="analytics" class="section">
             <h2>Laporan & Analitik</h2>
-            
+
             <div style="margin-bottom: 2rem;">
                 <select id="analyticsPeriod" class="form-control" style="display: inline-block; width: auto;">
                     <option value="today">Hari Ini</option>
@@ -286,11 +309,11 @@ if (!isset($_SESSION['admin_logged_in'])) {
                 </select>
                 <button class="btn btn-primary" onclick="loadAnalytics()">Update</button>
             </div>
-            
+
             <div class="stats-grid" id="analyticsStats">
                 <!-- Analytics stats will be loaded here -->
             </div>
-            
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
                 <div class="data-table">
                     <h3 style="padding: 1rem;">Menu Terpopuler</h3>
@@ -298,7 +321,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
                         <!-- Popular items will be loaded here -->
                     </div>
                 </div>
-                
+
                 <div class="data-table">
                     <h3 style="padding: 1rem;">Jam Sibuk</h3>
                     <div id="peakHours">
@@ -310,61 +333,67 @@ if (!isset($_SESSION['admin_logged_in'])) {
     </div>
 
     <!-- Modal Tambah Menu -->
-<!-- Modal Tambah Menu -->
-<div id="addMenuModal" style="
+    <!-- Modal Tambah Menu -->
+    <div id="addMenuModal" style="
     display:none;
     position:fixed;
     inset:0;
     background:rgba(0,0,0,0.5);
     z-index:1000;
     overflow-y:auto;">
-    <div style="background:#fff; width:450px; margin:5% auto; padding:1.5rem; border-radius:10px;">
-        <h3>Tambah Menu</h3>
+        <div style="background:#fff; width:450px; margin:5% auto; padding:1.5rem; border-radius:10px;">
+            <h3>Tambah Menu</h3>
 
-        <div class="form-group">
-            <label>Nama Menu</label>
-            <input type="text" id="menuName" class="form-control">
-        </div>
+            <div class="form-group">
+                <label>Nama Menu</label>
+                <input type="text" id="menuName" class="form-control">
+            </div>
 
-        <div class="form-group">
-            <label>Kategori</label>
-            <select id="menuCategory" class="form-control">
-                <option value="">-- Pilih Kategori --</option>
-                <option value="1">Minuman</option>
-                <option value="2">Makanan</option>
-                <option value="3">Snack</option>
-            </select>
-        </div>
+            <div class="form-group">
+                <label>Kategori</label>
+                <select id="menuCategory" class="form-control">
+                    <option value="">-- Pilih Kategori --</option>
+                    <option value="1">Minuman</option>
+                    <option value="2">Makanan</option>
+                    <option value="3">Snack</option>
+                </select>
+            </div>
 
-        <div class="form-group">
-            <label>Deskripsi</label>
-            <textarea id="menuDescription" class="form-control"></textarea>
-        </div>
+            <div class="form-group">
+                <label>Deskripsi</label>
+                <textarea id="menuDescription" class="form-control"></textarea>
+            </div>
 
-        <div class="form-group">
-            <label>Harga</label>
-            <input type="number" id="menuPrice" class="form-control">
-        </div>
+            <div class="form-group">
+                <label>Harga</label>
+                <input type="number" id="menuPrice" class="form-control">
+            </div>
 
-        <div class="form-group">
-            <label>Waktu Persiapan (menit)</label>
-            <input type="number" id="menuPrepTime" class="form-control" value="10">
-        </div>
+            <div class="form-group">
+                <label>Foto Menu</label>
+                <input type="file" id="menuPhoto" class="form-control" accept="image/*">
+            </div>
 
-        <div class="form-group">
-            <label>Status</label>
-            <select id="menuStatus" class="form-control">
-                <option value="1">Tersedia</option>
-                <option value="0">Tidak Tersedia</option>
-            </select>
-        </div>
 
-        <div style="margin-top:1rem; text-align:right;">
-            <button class="btn btn-outline" onclick="closeAddMenuForm()">Batal</button>
-            <button class="btn btn-primary" onclick="submitAddMenu()">Simpan</button>
+            <div class="form-group">
+                <label>Waktu Persiapan (menit)</label>
+                <input type="number" id="menuPrepTime" class="form-control" value="10">
+            </div>
+
+            <div class="form-group">
+                <label>Status</label>
+                <select id="menuStatus" class="form-control">
+                    <option value="1">Tersedia</option>
+                    <option value="0">Tidak Tersedia</option>
+                </select>
+            </div>
+
+            <div style="margin-top:1rem; text-align:right;">
+                <button class="btn btn-outline" onclick="closeAddMenuForm()">Batal</button>
+                <button class="btn btn-primary" onclick="submitAddMenu()">Simpan</button>
+            </div>
         </div>
     </div>
-</div>
 
 
 
@@ -381,13 +410,13 @@ if (!isset($_SESSION['admin_logged_in'])) {
                     // Update active nav button
                     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
-                    
+
                     // Show corresponding section
                     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
                     document.getElementById(this.dataset.section).classList.add('active');
-                    
+
                     // Load section data
-                    switch(this.dataset.section) {
+                    switch (this.dataset.section) {
                         case 'dashboard':
                             loadDashboard();
                             break;
@@ -409,48 +438,51 @@ if (!isset($_SESSION['admin_logged_in'])) {
         }
 
         async function submitAddMenu() {
-    const name = document.getElementById('menuName').value;
-    const category = document.getElementById('menuCategory').value || null;
-    const description = document.getElementById('menuDescription').value || null;
-    const price = document.getElementById('menuPrice').value;
-    const prepTime = document.getElementById('menuPrepTime').value || 10;
-    const status = document.getElementById('menuStatus').value;
+            const name = document.getElementById('menuName').value;
+            const category = document.getElementById('menuCategory').value || '';
+            const description = document.getElementById('menuDescription').value || '';
+            const price = document.getElementById('menuPrice').value;
+            const prepTime = document.getElementById('menuPrepTime').value || 10;
+            const status = document.getElementById('menuStatus').value;
+            const photoInput = document.getElementById('menuPhoto');
 
-    if (!name || !price) {
-        alert('Nama dan harga wajib diisi');
-        return;
-    }
+            if (!name || !price) {
+                alert('Nama dan harga wajib diisi');
+                return;
+            }
 
-    try {
-        const response = await fetch('../api/menu.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: name,
-                category_id: category,
-                description: description,
-                price: price,
-                preparation_time: prepTime,
-                is_available: status
-            })
-        });
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('category_id', category);
+            formData.append('description', description);
+            formData.append('price', price);
+            formData.append('preparation_time', prepTime);
+            formData.append('is_available', status);
 
-        const result = await response.json();
+            if (photoInput && photoInput.files.length > 0) {
+                formData.append('photo', photoInput.files[0]);
+            }
 
-        if (result.success) {
-            alert('Menu berhasil ditambahkan');
-            closeAddMenuForm();
-            loadMenu();
-        } else {
-            alert(result.error || 'Gagal menambah menu');
+            try {
+                const response = await fetch('../api/menu.php', {
+                    method: 'POST',
+                    body: formData // ⬅️ PENTING
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Menu berhasil ditambahkan');
+                    closeAddMenuForm();
+                    loadMenu();
+                } else {
+                    alert(result.error || 'Gagal menambah menu');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Terjadi kesalahan');
+            }
         }
-    } catch (error) {
-        console.error(error);
-        alert('Terjadi kesalahan');
-    }
-}
 
 
         async function loadDashboard() {
@@ -458,15 +490,15 @@ if (!isset($_SESSION['admin_logged_in'])) {
                 // Load basic stats
                 const response = await fetch('../api/analytics.php?period=today');
                 const data = await response.json();
-                
+
                 if (data.success) {
                     displayDashboardStats(data);
                 }
-                
+
                 // Load recent orders
                 loadRecentOrders();
                 loadTodayReservations();
-                
+
             } catch (error) {
                 console.error('Error loading dashboard:', error);
             }
@@ -475,7 +507,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
         function displayDashboardStats(data) {
             const statsGrid = document.getElementById('statsGrid');
             const stats = data.order_stats;
-            
+
             statsGrid.innerHTML = `
                 <div class="stat-card">
                     <div class="stat-number">${stats.total_orders || 0}</div>
@@ -500,7 +532,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
             try {
                 const response = await fetch('../api/orders.php?limit=5');
                 const data = await response.json();
-                
+
                 if (data.success) {
                     const container = document.getElementById('recentOrders');
                     container.innerHTML = `
@@ -528,7 +560,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
                 const today = new Date().toISOString().split('T')[0];
                 const response = await fetch(`../api/reservations.php?date=${today}&limit=5`);
                 const data = await response.json();
-                
+
                 if (data.success) {
                     const container = document.getElementById('todayReservations');
                     container.innerHTML = `
@@ -558,7 +590,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
                 const url = status ? `../api/orders.php?status=${status}` : '../api/orders.php';
                 const response = await fetch(url);
                 const data = await response.json();
-                
+
                 if (data.success) {
                     const tbody = document.getElementById('ordersTableBody');
                     tbody.innerHTML = data.orders.map(order => `
@@ -598,7 +630,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
                 const url = date ? `../api/reservations.php?date=${date}` : '../api/reservations.php';
                 const response = await fetch(url);
                 const data = await response.json();
-                
+
                 if (data.success) {
                     const tbody = document.getElementById('reservationsTableBody');
                     tbody.innerHTML = data.reservations.map(reservation => `
@@ -635,7 +667,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
             try {
                 const response = await fetch('../api/menu.php');
                 const data = await response.json();
-                
+
                 if (data.success) {
                     const tbody = document.getElementById('menuTableBody');
                     tbody.innerHTML = data.items.map(item => `
@@ -666,7 +698,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
                 const period = document.getElementById('analyticsPeriod')?.value || 'today';
                 const response = await fetch(`../api/analytics.php?period=${period}`);
                 const data = await response.json();
-                
+
                 if (data.success) {
                     displayAnalyticsStats(data);
                     displayPopularItems(data.popular_items);
@@ -680,7 +712,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
         function displayAnalyticsStats(data) {
             const container = document.getElementById('analyticsStats');
             const stats = data.order_stats;
-            
+
             container.innerHTML = `
                 <div class="stat-card">
                     <div class="stat-number">${stats.total_orders || 0}</div>
@@ -737,7 +769,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
 
         async function updateOrderStatus(orderId, status) {
             if (!status) return;
-            
+
             try {
                 const response = await fetch('../api/orders.php', {
                     method: 'PUT',
@@ -749,7 +781,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
                         status: status
                     })
                 });
-                
+
                 const result = await response.json();
                 if (result.success) {
                     alert('Status pesanan berhasil diupdate');
@@ -765,7 +797,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
 
         async function updateReservationStatus(reservationId, status) {
             if (!status) return;
-            
+
             try {
                 const response = await fetch('../api/reservations.php', {
                     method: 'PUT',
@@ -777,7 +809,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
                         status: status
                     })
                 });
-                
+
                 const result = await response.json();
                 if (result.success) {
                     alert('Status reservasi berhasil diupdate');
@@ -813,12 +845,12 @@ if (!isset($_SESSION['admin_logged_in'])) {
         }
 
         function showAddMenuForm() {
-    document.getElementById('addMenuModal').style.display = 'block';
-}
+            document.getElementById('addMenuModal').style.display = 'block';
+        }
 
-function closeAddMenuForm() {
-    document.getElementById('addMenuModal').style.display = 'none';
-}
+        function closeAddMenuForm() {
+            document.getElementById('addMenuModal').style.display = 'none';
+        }
 
         function editMenuItem(id) {
             alert('Fitur edit menu akan segera tersedia');
@@ -829,4 +861,5 @@ function closeAddMenuForm() {
         }
     </script>
 </body>
+
 </html>
