@@ -13,7 +13,11 @@ switch ($method) {
         getMenuItems();
         break;
     case 'POST':
-        addMenuItem();
+        if (isset($_POST['id'])) {
+            updateMenuItem();
+        } else {
+            addMenuItem();
+        }
         break;
     default:
         http_response_code(405);
@@ -118,6 +122,80 @@ function addMenuItem()
         echo json_encode([
             'success' => true,
             'message' => 'Menu berhasil ditambahkan'
+        ]);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
+function updateMenuItem()
+{
+    global $pdo;
+
+    if (empty($_POST['id']) || empty($_POST['name']) || empty($_POST['price'])) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'error' => 'ID, nama, dan harga wajib diisi'
+        ]);
+        return;
+    }
+
+    // Ambil foto lama
+    $stmtOld = $pdo->prepare("SELECT image_url FROM menu_items WHERE id = ?");
+    $stmtOld->execute([$_POST['id']]);
+    $oldImage = $stmtOld->fetchColumn();
+
+    $imageName = $oldImage;
+    $uploadDir = '../public/';
+
+    // Upload foto baru (jika ada)
+    if (!empty($_FILES['photo']['name'])) {
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $ext = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
+        $imageName = uniqid('menu_') . '.' . $ext;
+        move_uploaded_file($_FILES['photo']['tmp_name'], $uploadDir . $imageName);
+
+        // Hapus foto lama
+        if ($oldImage && file_exists($uploadDir . $oldImage)) {
+            unlink($uploadDir . $oldImage);
+        }
+    }
+
+    try {
+        $stmt = $pdo->prepare("
+            UPDATE menu_items SET
+                category_id = :category_id,
+                name = :name,
+                description = :description,
+                image_url = :image_url,
+                price = :price,
+                is_available = :is_available,
+                preparation_time = :preparation_time
+            WHERE id = :id
+        ");
+
+        $stmt->execute([
+            ':id' => $_POST['id'],
+            ':category_id' => $_POST['category_id'] ?: null,
+            ':name' => $_POST['name'],
+            ':description' => $_POST['description'] ?: null,
+            ':image_url' => $imageName,
+            ':price' => $_POST['price'],
+            ':is_available' => $_POST['is_available'],
+            ':preparation_time' => $_POST['preparation_time']
+        ]);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Menu berhasil diperbarui'
         ]);
     } catch (PDOException $e) {
         http_response_code(500);

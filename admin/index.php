@@ -32,6 +32,17 @@ if (!isset($_SESSION['admin_logged_in'])) {
     <title>Admin Panel - Blue Space Coffee</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
+        #editMenuModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+
+            overflow-y: auto;
+            /* ⭐ INI KUNCI */
+        }
+
         .admin-header {
             background: var(--primary-color);
             color: var(--white);
@@ -395,14 +406,103 @@ if (!isset($_SESSION['admin_logged_in'])) {
         </div>
     </div>
 
+    <div id="editMenuModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1000;">
+        <div style="background:#fff; width:450px; margin:5% auto; padding:1.5rem; border-radius:10px;">
+            <h3>Edit Menu</h3>
 
+            <input type="hidden" id="editMenuId">
+
+            <div class="form-group">
+                <label>Nama Menu</label>
+                <input type="text" id="editMenuName" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label>Kategori</label>
+                <select id="editMenuCategory" class="form-control"></select>
+            </div>
+
+            <div class="form-group">
+                <label>Deskripsi</label>
+                <textarea id="editMenuDescription" class="form-control"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Foto Menu (kosongkan jika tidak ganti)</label>
+                <input type="file" id="editMenuPhoto" class="form-control" accept="image/*">
+                <img id="previewEditPhoto" style="margin-top:10px; width:80px; display:none;">
+            </div>
+
+            <div class="form-group">
+                <label>Harga</label>
+                <input type="number" id="editMenuPrice" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label>Waktu Persiapan</label>
+                <input type="number" id="editMenuPrepTime" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label>Status</label>
+                <select id="editMenuStatus" class="form-control">
+                    <option value="1">Tersedia</option>
+                    <option value="0">Tidak Tersedia</option>
+                </select>
+            </div>
+
+            <div style="margin-top:1rem; text-align:right;">
+                <button class="btn btn-outline" onclick="closeEditMenu()">Batal</button>
+                <button class="btn btn-primary" onclick="submitEditMenu()">Simpan Perubahan</button>
+            </div>
+        </div>
+    </div>
 
     <script>
+        let menuData = [];
         // Initialize admin panel
         document.addEventListener('DOMContentLoaded', function() {
             setupNavigation();
             loadDashboard();
         });
+
+        async function submitEditMenu() {
+            const formData = new FormData();
+
+            formData.append('id', document.getElementById('editMenuId').value);
+            formData.append('name', document.getElementById('editMenuName').value);
+            formData.append('category_id', document.getElementById('editMenuCategory').value);
+            formData.append('description', document.getElementById('editMenuDescription').value);
+            formData.append('price', document.getElementById('editMenuPrice').value);
+            formData.append('preparation_time', document.getElementById('editMenuPrepTime').value);
+            formData.append('is_available', document.getElementById('editMenuStatus').value);
+
+            const photoInput = document.getElementById('editMenuPhoto');
+            if (photoInput.files.length > 0) {
+                formData.append('photo', photoInput.files[0]);
+            }
+
+            try {
+                const response = await fetch('../api/menu.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Menu berhasil diperbarui');
+                    closeEditMenu();
+                    loadMenu();
+                } else {
+                    alert(result.error || 'Gagal update menu');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Terjadi kesalahan');
+            }
+        }
+
 
         function setupNavigation() {
             document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -483,7 +583,6 @@ if (!isset($_SESSION['admin_logged_in'])) {
                 alert('Terjadi kesalahan');
             }
         }
-
 
         async function loadDashboard() {
             try {
@@ -669,29 +768,33 @@ if (!isset($_SESSION['admin_logged_in'])) {
                 const data = await response.json();
 
                 if (data.success) {
+                    menuData = data.items; // ⬅️ simpan global
+
                     const tbody = document.getElementById('menuTableBody');
                     tbody.innerHTML = data.items.map(item => `
-                        <tr>
-                            <td>#${item.id}</td>
-                            <td>${item.name}</td>
-                            <td>${item.category_name}</td>
-                            <td>Rp ${parseInt(item.price).toLocaleString()}</td>
-                            <td><span class="status-badge ${item.is_available ? 'status-confirmed' : 'status-cancelled'}">${item.is_available ? 'Tersedia' : 'Tidak Tersedia'}</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-primary" onclick="editMenuItem(${item.id})">Edit</button>
-                                    <button class="btn btn-sm ${item.is_available ? 'btn-danger' : 'btn-success'}" onclick="toggleMenuAvailability(${item.id}, ${!item.is_available})">
-                                        ${item.is_available ? 'Nonaktifkan' : 'Aktifkan'}
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    `).join('');
+                <tr>
+                    <td>#${item.id}</td>
+                    <td>${item.name}</td>
+                    <td>${item.category_name || '-'}</td>
+                    <td>Rp ${parseInt(item.price).toLocaleString()}</td>
+                    <td>
+                        <span class="status-badge ${item.is_available ? 'status-confirmed' : 'status-cancelled'}">
+                            ${item.is_available ? 'Tersedia' : 'Tidak Tersedia'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-primary" onclick="editMenuItem(${item.id})">Edit</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
                 }
             } catch (error) {
                 console.error('Error loading menu:', error);
             }
         }
+
 
         async function loadAnalytics() {
             try {
@@ -853,11 +956,45 @@ if (!isset($_SESSION['admin_logged_in'])) {
         }
 
         function editMenuItem(id) {
-            alert('Fitur edit menu akan segera tersedia');
+            const item = menuData.find(m => m.id == id);
+            if (!item) return;
+
+            document.getElementById('editMenuModal').style.display = 'block';
+
+            document.getElementById('editMenuId').value = item.id;
+            document.getElementById('editMenuName').value = item.name;
+            document.getElementById('editMenuDescription').value = item.description || '';
+            document.getElementById('editMenuPrice').value = item.price;
+            document.getElementById('editMenuPrepTime').value = item.preparation_time;
+            document.getElementById('editMenuStatus').value = item.is_available;
+
+            // Kategori (hardcode dulu, bisa dinamis nanti)
+            const categorySelect = document.getElementById('editMenuCategory');
+            categorySelect.innerHTML = `
+        <option value="1">Minuman</option>
+        <option value="2">Makanan</option>
+        <option value="3">Snack</option>
+    `;
+            categorySelect.value = item.category_id;
+
+            // Preview foto lama
+            const preview = document.getElementById('previewEditPhoto');
+            if (item.photo) {
+                preview.src = '../uploads/menu/' + item.photo;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
         }
+
 
         function toggleMenuAvailability(id, available) {
             alert('Fitur toggle ketersediaan menu akan segera tersedia');
+        }
+
+        function closeEditMenu() {
+            document.getElementById('editMenuModal').style.display = 'none';
+            document.getElementById('editMenuPhoto').value = '';
         }
     </script>
 </body>

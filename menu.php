@@ -1,6 +1,7 @@
 <?php require_once 'config/database.php'; ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +15,7 @@
             margin: 2rem 0;
             flex-wrap: wrap;
         }
+
         .category-btn {
             padding: 0.75rem 1.5rem;
             border: 2px solid var(--primary-color);
@@ -23,24 +25,28 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
+
         .category-btn.active,
         .category-btn:hover {
             background: var(--primary-color);
             color: var(--white);
         }
+
         .order-type-selector {
             background: var(--white);
             padding: 2rem;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             margin-bottom: 2rem;
         }
+
         .order-types {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
             margin-top: 1rem;
         }
+
         .order-type {
             padding: 1rem;
             border: 2px solid var(--border-color);
@@ -49,11 +55,13 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
+
         .order-type.selected {
             border-color: var(--primary-color);
             background: var(--primary-color);
             color: var(--white);
         }
+
         .cart-sidebar {
             position: fixed;
             right: -400px;
@@ -61,14 +69,16 @@
             width: 400px;
             height: 100vh;
             background: var(--white);
-            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
             transition: right 0.3s ease;
             z-index: 1001;
             overflow-y: auto;
         }
+
         .cart-sidebar.open {
             right: 0;
         }
+
         .cart-toggle {
             position: fixed;
             right: 2rem;
@@ -81,15 +91,17 @@
             height: 60px;
             font-size: 1.5rem;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             z-index: 1000;
         }
+
         .quantity-controls {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             margin-top: 1rem;
         }
+
         .quantity-btn {
             width: 30px;
             height: 30px;
@@ -102,12 +114,14 @@
             align-items: center;
             justify-content: center;
         }
+
         .quantity-btn:hover {
             background: var(--primary-color);
             color: var(--white);
         }
     </style>
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -172,12 +186,14 @@
         <div class="p-2">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <h3>Keranjang Belanja</h3>
-                <button onclick="toggleCart()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">✕</button>
+                <button onclick="toggleCart()"
+                    style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">✕</button>
             </div>
             <div id="cart-items">
                 <p class="text-center">Keranjang kosong</p>
             </div>
-            <div id="cart-total" style="margin-top: 2rem; padding-top: 1rem; border-top: 2px solid var(--border-color);">
+            <div id="cart-total"
+                style="margin-top: 2rem; padding-top: 1rem; border-top: 2px solid var(--border-color);">
                 <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold;">
                     <span>Total:</span>
                     <span id="total-amount">Rp 0</span>
@@ -198,11 +214,12 @@
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             loadMenuData();
-            
+
             // Order type selection
             document.querySelectorAll('.order-type').forEach(type => {
                 type.addEventListener('click', function() {
-                    document.querySelectorAll('.order-type').forEach(t => t.classList.remove('selected'));
+                    document.querySelectorAll('.order-type').forEach(t => t.classList.remove(
+                        'selected'));
                     this.classList.add('selected');
                     selectedOrderType = this.dataset.type;
                 });
@@ -213,7 +230,7 @@
             try {
                 const response = await fetch('api/menu.php');
                 const data = await response.json();
-                
+
                 if (data.success) {
                     menuItems = data.items;
                     categories = data.categories;
@@ -232,23 +249,89 @@
 
         function loadFallbackData() {
             // Fallback static data
-            categories = [
-                {id: 1, name: 'Kopi'},
-                {id: 2, name: 'Makanan'},
-                {id: 3, name: 'Minuman Non-Kopi'},
-                {id: 4, name: 'Dessert'}
+            categories = [{
+                    id: 1,
+                    name: 'Kopi'
+                },
+                {
+                    id: 2,
+                    name: 'Makanan'
+                },
+                {
+                    id: 3,
+                    name: 'Minuman Non-Kopi'
+                },
+                {
+                    id: 4,
+                    name: 'Dessert'
+                }
             ];
-            
-            menuItems = [
-                {id: 1, category_id: 1, name: 'Espresso', description: 'Kopi hitam pekat dengan rasa yang kuat', price: 15000, image_url: 'assets/images/espresso.jpg', preparation_time: 5},
-                {id: 2, category_id: 1, name: 'Cappuccino', description: 'Espresso dengan susu steamed dan foam', price: 25000, image_url: 'assets/images/cappuccino.jpg', preparation_time: 8},
-                {id: 3, category_id: 1, name: 'Latte', description: 'Espresso dengan susu steamed dan sedikit foam', price: 28000, image_url: 'assets/images/latte.jpg', preparation_time: 8},
-                {id: 4, category_id: 2, name: 'Sandwich Club', description: 'Sandwich dengan ayam, sayuran segar', price: 35000, image_url: 'assets/images/sandwich.jpg', preparation_time: 12},
-                {id: 5, category_id: 2, name: 'Pasta Carbonara', description: 'Pasta dengan saus krim dan bacon', price: 45000, image_url: 'assets/images/pasta.jpg', preparation_time: 15},
-                {id: 6, category_id: 3, name: 'Teh Tarik', description: 'Teh dengan susu yang ditarik', price: 12000, image_url: 'assets/images/teh.jpg', preparation_time: 5},
-                {id: 7, category_id: 4, name: 'Tiramisu', description: 'Dessert Italia dengan kopi dan mascarpone', price: 28000, image_url: 'assets/images/tiramisu.jpg', preparation_time: 2}
+
+            menuItems = [{
+                    id: 1,
+                    category_id: 1,
+                    name: 'Espresso',
+                    description: 'Kopi hitam pekat dengan rasa yang kuat',
+                    price: 15000,
+                    image_url: 'public/espresso.jpg',
+                    preparation_time: 5
+                },
+                {
+                    id: 2,
+                    category_id: 1,
+                    name: 'Cappuccino',
+                    description: 'Espresso dengan susu steamed dan foam',
+                    price: 25000,
+                    image_url: 'public/cappuccino.jpg',
+                    preparation_time: 8
+                },
+                {
+                    id: 3,
+                    category_id: 1,
+                    name: 'Latte',
+                    description: 'Espresso dengan susu steamed dan sedikit foam',
+                    price: 28000,
+                    image_url: 'public/latte.jpg',
+                    preparation_time: 8
+                },
+                {
+                    id: 4,
+                    category_id: 2,
+                    name: 'Sandwich Club',
+                    description: 'Sandwich dengan ayam, sayuran segar',
+                    price: 35000,
+                    image_url: 'public/sandwich.jpg',
+                    preparation_time: 12
+                },
+                {
+                    id: 5,
+                    category_id: 2,
+                    name: 'Pasta Carbonara',
+                    description: 'Pasta dengan saus krim dan bacon',
+                    price: 45000,
+                    image_url: 'public/pasta.jpg',
+                    preparation_time: 15
+                },
+                {
+                    id: 6,
+                    category_id: 3,
+                    name: 'Teh Tarik',
+                    description: 'Teh dengan susu yang ditarik',
+                    price: 12000,
+                    image_url: 'public/teh.jpg',
+                    preparation_time: 5
+                },
+                {
+                    id: 7,
+                    category_id: 4,
+                    name: 'Tiramisu',
+                    description: 'Dessert Italia dengan kopi dan mascarpone',
+                    price: 28000,
+                    image_url: 'public/tiramisu.jpg',
+                    preparation_time: 2
+                }
             ];
-            
+
             displayMenuItems('all');
             updateCategoryButtons();
         }
@@ -262,7 +345,7 @@
                 ).join('')}
             `;
             categoryContainer.innerHTML = buttonsHtml;
-            
+
             // Re-attach event listeners
             document.querySelectorAll('.category-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -276,10 +359,10 @@
         function displayMenuItems(category) {
             const container = document.getElementById('menu-items');
             let filteredItems = category === 'all' ? menuItems : menuItems.filter(item => item.category_id == category);
-            
+
             container.innerHTML = filteredItems.map(item => `
                 <div class="menu-item">
-                    <img src="${item.image_url || 'assets/images/placeholder.jpg'}" alt="${item.name}" onerror="this.src='assets/images/placeholder.jpg'">
+                    <img src="public/${item.image_url || '/public/placeholder.jpg'}" alt="${item.name}" onerror="this.src='public/placeholder.jpg'">
                     <div class="menu-item-content">
                         <h4>${item.name}</h4>
                         <p>${item.description}</p>
@@ -315,7 +398,10 @@
             if (existingItem) {
                 existingItem.quantity += qty;
             } else {
-                cart.push({...item, quantity: qty});
+                cart.push({
+                    ...item,
+                    quantity: qty
+                });
             }
 
             document.getElementById(`qty-${itemId}`).textContent = '0';
@@ -369,7 +455,7 @@
                 alert('Silakan pilih jenis pesanan terlebih dahulu!');
                 return;
             }
-            
+
             // Store cart and order type in localStorage
             localStorage.setItem('cart', JSON.stringify(cart));
             localStorage.setItem('orderType', selectedOrderType);
@@ -377,4 +463,5 @@
         }
     </script>
 </body>
+
 </html>
