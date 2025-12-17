@@ -255,14 +255,18 @@ if (!isset($_SESSION['admin_logged_in'])) {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <h2>Manajemen Reservasi</h2>
                 <div>
+                    <input type="text" id="reservationSearch" class="form-control"
+                        placeholder="Cari nama pelanggan / no meja / status" style="width:300px;"
+                        onkeyup="searchReservation()">
                     <input type="date" id="reservationDateFilter" class="form-control"
                         style="display: inline-block; width: auto;">
                     <button class="btn btn-primary" onclick="loadReservations()">Refresh</button>
+                    <button class="btn btn-primary" onclick="openAddTable()">+ Tambah Meja</button>
                 </div>
             </div>
 
             <div class="data-table">
-                <table>
+                <table id="table-list">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -343,7 +347,52 @@ if (!isset($_SESSION['admin_logged_in'])) {
         </section>
     </div>
 
-    <!-- Modal Tambah Menu -->
+    <!-- MODAL FORM MEJA -->
+    <div id="tableModal" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    z-index:1000;
+    overflow-y:auto;">
+        <div style="background:#fff; width:450px; margin:5% auto; padding:1.5rem; border-radius:10px;">
+            <h3 id="modalTitle">Tambah Meja</h3>
+
+            <input type="hidden" id="table_id">
+
+            <div class="form-group">
+                <label>No Meja</label>
+                <input type="text" id="table_number" placeholder="Contoh: A1" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label>Kapasitas</label>
+                <input type="number" id="capacity" min="1" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label>Lokasi</label>
+                <select id="location" class="form-control">
+                    <option value="indoor">Indoor</option>
+                    <option value="outdoor">Outdoor</option>
+                    <option value="window">Window</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    Meja Aktif
+                    <input type="checkbox" id="is_available" class="form-control" checked>
+                </label>
+            </div>
+
+            <div style="margin-top:1rem; text-align:right;">
+                <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+                <button class="btn btn-primary" id="submitBtn" onclick="submitAddTable()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Tambah Menu -->
     <div id="addMenuModal" style="
     display:none;
@@ -926,6 +975,50 @@ if (!isset($_SESSION['admin_logged_in'])) {
             }
         }
 
+        async function submitAddTable() {
+            const payload = {
+                table_number: document.getElementById('table_number').value,
+                capacity: document.getElementById('capacity').value,
+                location: document.getElementById('location').value,
+                is_available: document.getElementById('is_available').checked ? 1 : 0
+            };
+
+            const res = await fetch('../api/tables.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            alert(data.message);
+            loadTables();
+        }
+
+        async function submitEditTable(id) {
+            const payload = {
+                id: id,
+                table_number: document.getElementById('edit_table_number').value,
+                capacity: document.getElementById('edit_capacity').value,
+                location: document.getElementById('edit_location').value,
+                is_available: document.getElementById('edit_is_available').checked ? 1 : 0
+            };
+
+            const res = await fetch('../api/tables.php', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            alert(data.message);
+            loadTables();
+        }
+
+
         function getStatusText(status) {
             const statusMap = {
                 'pending': 'Menunggu',
@@ -995,6 +1088,24 @@ if (!isset($_SESSION['admin_logged_in'])) {
         function closeEditMenu() {
             document.getElementById('editMenuModal').style.display = 'none';
             document.getElementById('editMenuPhoto').value = '';
+        }
+
+        function closeModal() {
+            document.getElementById('tableModal').style.display = 'none';
+        }
+
+        function openAddTable() {
+            document.getElementById('tableModal').style.display = 'block';
+        }
+
+        function searchReservation() {
+            const keyword = document.getElementById('reservationSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#reservationsTableBody tr');
+
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(keyword) ? '' : 'none';
+            });
         }
     </script>
 </body>
