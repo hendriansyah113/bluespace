@@ -6,6 +6,10 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 require_once '../config/database.php';
 
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
 $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {
@@ -33,10 +37,14 @@ function createReservation()
     global $pdo;
 
     try {
-        $input = json_decode(file_get_contents('php://input'), true);
-
-        // Validate required fields
-        if (!isset($input['customer']) || !isset($input['date']) || !isset($input['time']) || !isset($input['table_id'])) {
+        // VALIDASI FORM-DATA (BUKAN JSON LAGI)
+        if (
+            !isset($_POST['name']) ||
+            !isset($_POST['phone']) ||
+            !isset($_POST['date']) ||
+            !isset($_POST['time']) ||
+            !isset($_POST['table_id'])
+        ) {
             http_response_code(400);
             echo json_encode(['error' => 'Missing required fields']);
             return;
@@ -44,21 +52,25 @@ function createReservation()
 
         $pdo->beginTransaction();
 
-        // Insert customer
+        // ===============================
+        // 1️⃣ INSERT CUSTOMER
+        // ===============================
         $customerStmt = $pdo->prepare("
             INSERT INTO customers (name, phone, email) 
             VALUES (:name, :phone, :email)
         ");
 
         $customerStmt->execute([
-            ':name' => $input['customer']['name'],
-            ':phone' => $input['customer']['phone'],
-            ':email' => $input['customer']['email'] ?? null
+            ':name' => $_POST['name'],
+            ':phone' => $_POST['phone'],
+            ':email' => $_POST['email'] ?? null
         ]);
 
         $customer_id = $pdo->lastInsertId();
 
-        // Check table availability
+        // ===============================
+        // 2️⃣ CEK KETERSEDIAAN MEJA
+        // ===============================
         $availabilityStmt = $pdo->prepare("
             SELECT COUNT(*) as count FROM reservations 
             WHERE table_id = :table_id 
@@ -68,9 +80,9 @@ function createReservation()
         ");
 
         $availabilityStmt->execute([
-            ':table_id' => $input['table_id'],
-            ':date' => $input['date'],
-            ':time' => $input['time']
+            ':table_id' => $_POST['table_id'],
+            ':date' => $_POST['date'],
+            ':time' => $_POST['time']
         ]);
 
         $availability = $availabilityStmt->fetch();
@@ -82,19 +94,44 @@ function createReservation()
             return;
         }
 
-        // Insert reservation
+        // ===============================
+        // 3️⃣ UPLOAD BUKTI TRANSFER
+        // ===============================
+        $dp_proof_path = null;
+
+        if (isset($_FILES['dp_proof']) && $_FILES['dp_proof']['error'] === 0) {
+
+            $uploadDir = '../uploads/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            $fileName = time() . '_' . basename($_FILES['dp_proof']['name']);
+            $targetPath = $uploadDir . $fileName;
+
+            move_uploaded_file($_FILES['dp_proof']['tmp_name'], $targetPath);
+
+            $dp_proof_path = 'uploads/' . $fileName;
+        }
+
+        // ===============================
+        // 4️⃣ INSERT RESERVATION
+        // ===============================
         $reservationStmt = $pdo->prepare("
-            INSERT INTO reservations (customer_id, table_id, reservation_date, reservation_time, party_size, special_requests) 
-            VALUES (:customer_id, :table_id, :reservation_date, :reservation_time, :party_size, :special_requests)
+            INSERT INTO reservations 
+            (customer_id, table_id, reservation_date, reservation_time, party_size, special_requests, dp_proof) 
+            VALUES 
+            (:customer_id, :table_id, :reservation_date, :reservation_time, :party_size, :special_requests, :dp_proof)
         ");
 
         $reservationStmt->execute([
             ':customer_id' => $customer_id,
-            ':table_id' => $input['table_id'],
-            ':reservation_date' => $input['date'],
-            ':reservation_time' => $input['time'],
-            ':party_size' => $input['party_size'],
-            ':special_requests' => $input['special_requests'] ?? null
+            ':table_id' => $_POST['table_id'],
+            ':reservation_date' => $_POST['date'],
+            ':reservation_time' => $_POST['time'],
+            ':party_size' => $_POST['party_size'] ?? 1,
+            ':special_requests' => $_POST['special_requests'] ?? null,
+            ':dp_proof' => $dp_proof_path
         ]);
 
         $reservation_id = $pdo->lastInsertId();
