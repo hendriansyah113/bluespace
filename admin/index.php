@@ -236,6 +236,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
                         <tr>
                             <th>ID</th>
                             <th>Pelanggan</th>
+                            <th>Menu Pesanan</th>
                             <th>Jenis</th>
                             <th>Total</th>
                             <th>Status</th>
@@ -290,7 +291,9 @@ if (!isset($_SESSION['admin_logged_in'])) {
         <section id="menu" class="section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <h2>Manajemen Menu</h2>
-                <button class="btn btn-primary" onclick="showAddMenuForm()">Tambah Item</button>
+                <div> <button class="btn btn-outline" onclick="printMenu()">Cetak PDF</button>
+                    <button class="btn btn-primary" onclick="showAddMenuForm()">Tambah Item</button>
+                </div>
             </div>
 
             <div class="data-table">
@@ -412,11 +415,14 @@ if (!isset($_SESSION['admin_logged_in'])) {
             <div class="form-group">
                 <label>Kategori</label>
                 <select id="menuCategory" class="form-control">
-                    <option value="">-- Pilih Kategori --</option>
-                    <option value="1">Minuman</option>
-                    <option value="2">Makanan</option>
-                    <option value="3">Snack</option>
-                </select>
+    <option value="">-- Pilih Kategori --</option>
+    <option value="1">Espresso Based</option>
+    <option value="2">Kopi Susu</option>
+    <option value="3">Signature</option>
+    <option value="4">Non Coffee</option>
+    <option value="5">Makanan</option>
+    <option value="6">Cemilan</option>
+</select>
             </div>
 
             <div class="form-group">
@@ -746,8 +752,10 @@ if (!isset($_SESSION['admin_logged_in'])) {
                             <td>#${order.id}</td>
                             <td>
                                 <strong>${order.customer_name}</strong><br>
+                                 <small>${order.customer_phone}</small>
                                 <small>${order.customer_phone}</small>
                             </td>
+                            <td><small>${order.item_names}</small></td>
                             <td>${getOrderTypeText(order.order_type)}</td>
                             <td>Rp ${parseInt(order.total_amount).toLocaleString()}</td>
                             <td><span class="status-badge status-${order.order_status}">${getStatusText(order.order_status)}</span></td>
@@ -1064,10 +1072,13 @@ if (!isset($_SESSION['admin_logged_in'])) {
             // Kategori (hardcode dulu, bisa dinamis nanti)
             const categorySelect = document.getElementById('editMenuCategory');
             categorySelect.innerHTML = `
-        <option value="1">Minuman</option>
-        <option value="2">Makanan</option>
-        <option value="3">Snack</option>
-    `;
+    <option value="1">Espresso Based</option>
+    <option value="2">Kopi Susu</option>
+    <option value="3">Signature</option>
+    <option value="4">Non Coffee</option>
+    <option value="5">Makanan</option>
+    <option value="6">Cemilan</option>
+`;
             categorySelect.value = item.category_id;
 
             // Preview foto lama
@@ -1106,6 +1117,64 @@ if (!isset($_SESSION['admin_logged_in'])) {
                 const text = row.innerText.toLowerCase();
                 row.style.display = text.includes(keyword) ? '' : 'none';
             });
+        }
+
+        function printMenu() {
+            let printContent = `
+        <h2 style="text-align:center;">Daftar Menu - Blue Space Coffee</h2>
+        <table border="1" cellspacing="0" cellpadding="8" width="100%">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Nama Menu</th>
+                    <th>Kategori</th>
+                    <th>Harga</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+            menuData.forEach((item, index) => {
+                printContent += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${item.name}</td>
+                <td>${item.category_name || '-'}</td>
+                <td>Rp ${parseInt(item.price).toLocaleString()}</td>
+                <td>${item.is_available == 1 ? 'Tersedia' : 'Tidak Tersedia'}</td>
+            </tr>
+        `;
+            });
+
+            printContent += `
+            </tbody>
+        </table>
+        <p style="margin-top:20px; font-size:12px;">
+            Dicetak pada: ${new Date().toLocaleString('id-ID')}
+        </p>
+    `;
+
+            const win = window.open('', '', 'width=900,height=700');
+            win.document.write(`
+        <html>
+            <head>
+                <title>Cetak Menu</title>
+                <style>
+                    body { font-family: Arial; }
+                    table { border-collapse: collapse; }
+                    th { background: #f0f0f0; }
+                </style>
+            </head>
+            <body>
+                ${printContent}
+            </body>
+        </html>
+    `);
+
+            win.document.close();
+            win.focus();
+            win.print();
         }
     </script>
 </body>

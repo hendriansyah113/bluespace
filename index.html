@@ -5,6 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blue Space Coffee - Sistem Pemesanan dan Reservasi</title>
     <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- TAMBAHAN STYLE HERO BACKGROUND -->
+   <style>
+    .hero {
+        position: relative;
+        background: url('assets/images/depan.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        padding: 150px 20px;
+        text-align: center;
+        overflow: hidden;
+        color: #ffffff;
+    }
+
+    /* Overlay biru gelap agar teks lebih terbaca */
+    .hero::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 40, 80, 0.55); /* biru gelap transparan */
+        z-index: 1;
+    }
+
+    .hero .container {
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #ffffff;
+        text-shadow: 3px 3px 10px rgba(0,0,0,0.8);
+        margin-bottom: 20px;
+    }
+
+    .hero p {
+        font-size: 1.3rem;
+        color: #f8f9fa; /* lebih terang */
+        font-weight: 500;
+        max-width: 750px;
+        margin: 0 auto 30px;
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+    }
+</style>
 </head>
 <body>
     <!-- Header -->
@@ -29,12 +78,22 @@
     <section class="hero">
         <div class="container">
             <h1>Selamat Datang di Blue Space Coffee</h1>
-            <p>Nikmati kopi premium dalam suasana yang nyaman. Pesan online untuk makan di tempat, bawa pulang, atau layanan antar, dan reservasi meja terbaik Anda.</p>
+            <p>
+                Nikmati kopi premium dalam suasana yang nyaman. 
+                Pesan online untuk makan di tempat, bawa pulang, 
+                atau layanan antar, dan reservasi meja terbaik Anda.
+            </p>
             <div>
-                <a href="menu.php" class="btn btn-primary">🛒 Pesan Sekarang</a>
-                <a href="reservasi.php" class="btn btn-outline">📅 Reservasi Meja</a>
-            </div>
-        </div>
+    <a href="menu.php" class="btn btn-primary">🛒 Pesan Sekarang</a>
+    
+    <a href="reservasi.php" class="btn btn-outline" 
+       style="color: #ffffff; 
+              border: 2px solid #ffffff; 
+              font-weight: 700; 
+              text-shadow: 1px 1px 6px rgba(0,0,0,0.8);">
+        📅 Reservasi Meja
+    </a>
+</div>
     </section>
 
     <!-- Services Section -->

@@ -66,10 +66,6 @@
                 Login
             </button>
             
-            <div style="margin-top: 2rem; text-align: center; font-size: 0.9rem; color: #666;">
-                <p>Demo Credentials:</p>
-                <p><strong>Username:</strong> admin</p>
-                <p><strong>Password:</strong> admin123</p>
             </div>
         </form>
     </div>
