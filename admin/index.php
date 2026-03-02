@@ -383,6 +383,11 @@ if (!isset($_SESSION['admin_logged_in'])) {
             </div>
 
             <div class="form-group">
+                <label>Foto Meja</label>
+                <input type="file" id="table_photo" class="form-control" accept="image/*">
+            </div>
+
+            <div class="form-group">
                 <label>
                     Meja Aktif
                     <input type="checkbox" id="is_available" class="form-control" checked>
@@ -415,14 +420,14 @@ if (!isset($_SESSION['admin_logged_in'])) {
             <div class="form-group">
                 <label>Kategori</label>
                 <select id="menuCategory" class="form-control">
-    <option value="">-- Pilih Kategori --</option>
-    <option value="1">Espresso Based</option>
-    <option value="2">Kopi Susu</option>
-    <option value="3">Signature</option>
-    <option value="4">Non Coffee</option>
-    <option value="5">Makanan</option>
-    <option value="6">Cemilan</option>
-</select>
+                    <option value="">-- Pilih Kategori --</option>
+                    <option value="1">Espresso Based</option>
+                    <option value="2">Kopi Susu</option>
+                    <option value="3">Signature</option>
+                    <option value="4">Non Coffee</option>
+                    <option value="5">Makanan</option>
+                    <option value="6">Cemilan</option>
+                </select>
             </div>
 
             <div class="form-group">
@@ -984,24 +989,27 @@ if (!isset($_SESSION['admin_logged_in'])) {
         }
 
         async function submitAddTable() {
-            const payload = {
-                table_number: document.getElementById('table_number').value,
-                capacity: document.getElementById('capacity').value,
-                location: document.getElementById('location').value,
-                is_available: document.getElementById('is_available').checked ? 1 : 0
-            };
+            const formData = new FormData();
+
+            formData.append('table_number', document.getElementById('table_number').value);
+            formData.append('capacity', document.getElementById('capacity').value);
+            formData.append('location', document.getElementById('location').value);
+            formData.append('is_available', document.getElementById('is_available').checked ? 1 : 0);
+
+            const photoInput = document.getElementById('table_photo');
+            if (photoInput.files.length > 0) {
+                formData.append('photo', photoInput.files[0]);
+            }
 
             const res = await fetch('../api/tables.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
+                body: formData
             });
 
             const data = await res.json();
             alert(data.message);
-            loadTables();
+            closeModal();
+            loadReservations();
         }
 
         async function submitEditTable(id) {

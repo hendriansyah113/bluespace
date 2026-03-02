@@ -35,7 +35,7 @@ function getTables()
     global $pdo;
 
     $stmt = $pdo->query("
-        SELECT id, table_number, capacity, location, is_available, created_at
+        SELECT id, table_number, capacity, location, is_available, created_at, photo
         FROM tables
         ORDER BY table_number
     ");
@@ -51,28 +51,51 @@ function getTables()
 function createTable()
 {
     global $pdo;
-    $input = json_decode(file_get_contents('php://input'), true);
 
     if (
-        empty($input['table_number']) ||
-        empty($input['capacity']) ||
-        empty($input['location'])
+        empty($_POST['table_number']) ||
+        empty($_POST['capacity']) ||
+        empty($_POST['location'])
     ) {
         http_response_code(400);
         echo json_encode(['error' => 'Field wajib belum lengkap']);
         return;
     }
 
+    $photoName = null;
+
+    if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
+
+        $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+        $ext = strtolower(pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION));
+
+        if (!in_array($ext, $allowed)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Format gambar tidak didukung']);
+            return;
+        }
+
+        $uploadDir = '../uploads/tables/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $photoName = 'table_' . time() . '_' . rand(100, 999) . '.' . $ext;
+
+        move_uploaded_file($_FILES['photo']['tmp_name'], $uploadDir . $photoName);
+    }
+
     $stmt = $pdo->prepare("
-        INSERT INTO tables (table_number, capacity, location, is_available)
-        VALUES (:table_number, :capacity, :location, :is_available)
+        INSERT INTO tables (table_number, capacity, location, is_available, photo)
+        VALUES (:table_number, :capacity, :location, :is_available, :photo)
     ");
 
     $stmt->execute([
-        ':table_number' => $input['table_number'],
-        ':capacity' => $input['capacity'],
-        ':location' => $input['location'],
-        ':is_available' => $input['is_available'] ?? 1
+        ':table_number' => $_POST['table_number'],
+        ':capacity' => $_POST['capacity'],
+        ':location' => $_POST['location'],
+        ':is_available' => $_POST['is_available'] ?? 1,
+        ':photo' => $photoName
     ]);
 
     echo json_encode([
@@ -86,17 +109,52 @@ function createTable()
 function updateTable()
 {
     global $pdo;
-    $input = json_decode(file_get_contents('php://input'), true);
+
+    $id = $_POST['id'] ?? null;
 
     if (
-        empty($input['id']) ||
-        empty($input['table_number']) ||
-        empty($input['capacity']) ||
-        empty($input['location'])
+        empty($id) ||
+        empty($_POST['table_number']) ||
+        empty($_POST['capacity']) ||
+        empty($_POST['location'])
     ) {
         http_response_code(400);
         echo json_encode(['error' => 'Data tidak lengkap']);
         return;
+    }
+
+    $photoName = null;
+
+    // Ambil foto lama
+    $stmtOld = $pdo->prepare("SELECT photo FROM tables WHERE id = ?");
+    $stmtOld->execute([$id]);
+    $oldData = $stmtOld->fetch();
+
+    if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
+
+        $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+        $ext = strtolower(pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION));
+
+        if (!in_array($ext, $allowed)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Format gambar tidak didukung']);
+            return;
+        }
+
+        $uploadDir = '../uploads/tables/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $photoName = 'table_' . time() . '_' . rand(100, 999) . '.' . $ext;
+        move_uploaded_file($_FILES['photo']['tmp_name'], $uploadDir . $photoName);
+
+        // Hapus foto lama
+        if (!empty($oldData['photo']) && file_exists($uploadDir . $oldData['photo'])) {
+            unlink($uploadDir . $oldData['photo']);
+        }
+    } else {
+        $photoName = $oldData['photo'];
     }
 
     $stmt = $pdo->prepare("
@@ -104,16 +162,18 @@ function updateTable()
             table_number = :table_number,
             capacity = :capacity,
             location = :location,
-            is_available = :is_available
+            is_available = :is_available,
+            photo = :photo
         WHERE id = :id
     ");
 
     $stmt->execute([
-        ':id' => $input['id'],
-        ':table_number' => $input['table_number'],
-        ':capacity' => $input['capacity'],
-        ':location' => $input['location'],
-        ':is_available' => $input['is_available']
+        ':id' => $id,
+        ':table_number' => $_POST['table_number'],
+        ':capacity' => $_POST['capacity'],
+        ':location' => $_POST['location'],
+        ':is_available' => $_POST['is_available'],
+        ':photo' => $photoName
     ]);
 
     echo json_encode([
